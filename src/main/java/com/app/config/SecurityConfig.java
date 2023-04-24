@@ -9,9 +9,12 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import com.app.jwt.JwtRequestFilters;
 import com.app.service.UserService;
 
 
@@ -22,7 +25,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter{
 
 	@Autowired
 	private UserService userDetailsService;
-	
+	@Autowired
+	private JwtRequestFilters jwtRequestFilters;
 	
 	@Bean
 	public PasswordEncoder bcrypPasswordEncoder() {
@@ -49,11 +53,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter{
 		.antMatchers("/addUser").permitAll()
 		.antMatchers("/addRole").permitAll()
 		.antMatchers("/hello").permitAll()
-		.antMatchers("/admin").hasAnyRole("ADMIN")
+		.antMatchers("/admin").hasAnyRole("ROLE_ADMIN")
 		.anyRequest().authenticated()
-		.and().httpBasic();
-		//sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-		//http.addFilterBefore(jwtRequestFilters, UsernamePasswordAuthenticationFilter.class);
+		.and()
+		.addFilterBefore(jwtRequestFilters, UsernamePasswordAuthenticationFilter.class);
+		
 	}
 	
 	@Override

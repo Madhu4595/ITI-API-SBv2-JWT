@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.app.config.CustomPasswordEncoder;
 import com.app.entity.Role;
 import com.app.entity.User;
 import com.app.jwt.AUthenticationResponse;
@@ -65,8 +66,10 @@ public class HelloResource {
 	@RequestMapping(value = "/authenticate", method = RequestMethod.POST)
 	public ResponseEntity<?> createAuthentivationToken(@RequestBody AuthenticationRequest authenticationRequest) {
 		try {
+			CustomPasswordEncoder customPasswordEncoder =new CustomPasswordEncoder();
+			String password=customPasswordEncoder.encode(customPasswordEncoder.encode(authenticationRequest.getPassword()));
 			authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-					authenticationRequest.getUsername(), authenticationRequest.getPassword()));
+					authenticationRequest.getUsername(),password));
 		} catch (BadCredentialsException e) {
 			e.printStackTrace();
 		}

@@ -12,44 +12,48 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.app.config.CustomPasswordEncoder;
 import com.app.entity.Role;
 import com.app.entity.User;
 import com.app.repo.RoleRepository;
 import com.app.repo.UserRepository;
 
-
 @Service
 @Transactional
 public class UserService implements UserDetailsService {
-@Autowired
-private UserRepository userRepository;
+	@Autowired
+	private UserRepository userRepository;
 
-@Autowired
-private RoleRepository roleRepository;
+	@Autowired
+	private RoleRepository roleRepository;
 
-@Override
-public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-	// TODO Auto-generated method stub
-	User user=userRepository.findByUsername(username);
-	UserDetailsPrincipal userDetailsPrincipal=new UserDetailsPrincipal(user);
-	return userDetailsPrincipal;
-}
-
-public User addUser(User user) {
-	Set<Role> roles= new HashSet<>();
-	user.setPassword(new BCryptPasswordEncoder().encode(user.getPassword()));
-    user.getRoles().forEach(role->{
-	if(role.getRole_id()>0) {
-		Role nrole=roleRepository.findById(role.getRole_id()).get();
-		nrole.getUsers().add(user);
-		roles.add(nrole);
+	@Override
+	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+		// TODO Auto-generated method stub
+		User user = userRepository.findByUsername(username);
+		UserDetailsPrincipal userDetailsPrincipal = new UserDetailsPrincipal(user);
+		return userDetailsPrincipal;
 	}
-	else {
-		roles.add(role);
+
+	public User addUser(User user) {
+		Set<Role> roles = new HashSet<>();
+
+		CustomPasswordEncoder customPasswordEncoder = new CustomPasswordEncoder();
+
+		String password = customPasswordEncoder.encode(customPasswordEncoder.encode(user.getPassword()));
+		user.setPassword(password);
+
+		user.getRoles().forEach(role -> {
+			if (role.getRole_id() > 0) {
+				Role nrole = roleRepository.findById(role.getRole_id()).get();
+				nrole.getUsers().add(user);
+				roles.add(nrole);
+			} else {
+				roles.add(role);
+			}
+		});
+		user.setRoles(roles);
+		return userRepository.save(user);
 	}
-	});
-	user.setRoles(roles);
-	return userRepository.save(user);
-}
 
 }
